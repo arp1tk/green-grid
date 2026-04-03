@@ -33,9 +33,9 @@ const statusLabelMap: Record<Equipment["status"], string> = {
 };
 
 const statusClassMap: Record<Equipment["status"], string> = {
-  available: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  in_use: "bg-amber-100 text-amber-700 border-amber-200",
-  maintenance: "bg-rose-100 text-rose-700 border-rose-200",
+  available: "border border-emerald-200 bg-emerald-50/80 text-emerald-700",
+  in_use: "border border-amber-200 bg-amber-50/80 text-amber-700",
+  maintenance: "border border-rose-200 bg-rose-50/80 text-rose-700",
 };
 
 const bookingStatusClassMap: Record<Booking["status"], string> = {
@@ -117,9 +117,9 @@ export default function EquipmentDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+      <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <section className="mx-auto w-full max-w-4xl">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm">
             Loading equipment details...
           </div>
         </section>
@@ -129,11 +129,11 @@ export default function EquipmentDetailPage() {
 
   if (error || !equipment) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+      <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <section className="mx-auto w-full max-w-4xl">
           <Link
             href="/"
-            className="mb-4 inline-block text-sm font-medium text-teal-600 hover:text-teal-700"
+            className="mb-4 inline-block text-sm font-medium text-accent-foreground hover:text-foreground"
           >
             ← Back to Dashboard
           </Link>
@@ -146,28 +146,28 @@ export default function EquipmentDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+    <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto w-full max-w-4xl">
         <Link
           href="/"
-          className="mb-6 inline-block text-sm font-medium text-teal-600 hover:text-teal-700"
+          className="mb-6 inline-block text-sm font-medium text-accent-foreground hover:text-foreground"
         >
           ← Back to Dashboard
         </Link>
 
-        <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-6 rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 {equipment.name}
               </h1>
-              <p className="mt-2 text-lg text-slate-600">{equipment.category}</p>
-              <p className="mt-1 text-sm text-slate-500">
-                ID: <span className="font-mono text-slate-700">{equipment._id}</span>
+              <p className="mt-2 text-lg text-muted-foreground">{equipment.category}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                ID: <span className="font-mono text-accent-foreground">{equipment._id}</span>
               </p>
             </div>
             <span
-              className={`rounded-full border px-4 py-2 text-sm font-semibold ${statusClassMap[equipment.status]}`}
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${statusClassMap[equipment.status]}`}
             >
               {statusLabelMap[equipment.status]}
             </span>
@@ -177,10 +177,10 @@ export default function EquipmentDetailPage() {
             <button
               type="button"
               onClick={() => setIsBookingOpen(true)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-95 ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
                 equipment.status === "in_use"
-                  ? "bg-amber-600 hover:bg-amber-700"
-                  : "bg-teal-600 hover:bg-teal-700"
+                  ? "border border-amber-200 bg-amber-500 text-slate-950 hover:bg-amber-400"
+                  : "bg-slate-950 text-white hover:bg-slate-800"
               }`}
             >
               {equipment.status === "in_use"
@@ -192,15 +192,15 @@ export default function EquipmentDetailPage() {
          
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-600">Location</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
+            <div className="rounded-2xl border border-border bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Location</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
                 {equipment.location}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-600">Added</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
+            <div className="rounded-2xl border border-border bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Added</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
                 {equipment.createdAt
                   ? new Date(equipment.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
@@ -213,24 +213,24 @@ export default function EquipmentDetailPage() {
           </div>
 
           {equipment.description && (
-            <div className="mt-6 border-t border-slate-200 pt-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <div className="mt-6 border-t border-border pt-6">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Description
               </h2>
-              <p className="mt-3 text-slate-700">{equipment.description}</p>
+              <p className="mt-3 text-accent-foreground">{equipment.description}</p>
             </div>
           )}
 
           {equipment.specs && Object.keys(equipment.specs).length > 0 && (
-            <div className="mt-6 border-t border-slate-200 pt-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <div className="mt-6 border-t border-border pt-6">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Specifications
               </h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {Object.entries(equipment.specs).map(([key, value]) => (
-                  <div key={key} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-600">{key}</p>
-                    <p className="mt-2 text-lg font-semibold text-slate-900">
+                  <div key={key} className="rounded-2xl border border-border bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">{key}</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {String(value)}
                     </p>
                   </div>
@@ -240,22 +240,22 @@ export default function EquipmentDetailPage() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-2xl font-bold text-slate-900">Booking History</h2>
-          <p className="mt-1 text-sm text-slate-600">
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Booking History</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             All bookings for this equipment
           </p>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+          <div className="mt-6 rounded-2xl border border-border bg-white p-4 sm:p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-accent-foreground">
               Booking Timeline
             </h3>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               View booked date ranges before making a new reservation.
             </p>
 
             {sortedBookings.length === 0 ? (
-              <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
+              <div className="mt-4 rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
                 No booked dates yet. You can reserve this equipment now.
               </div>
             ) : (
@@ -267,13 +267,13 @@ export default function EquipmentDetailPage() {
                   return (
                     <div
                       key={`timeline-${booking._id}`}
-                      className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-foreground">
                           Booked by {booking.userName}
                         </p>
-                        <p className="mt-1 text-sm text-slate-600">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {startDate.toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
@@ -298,33 +298,33 @@ export default function EquipmentDetailPage() {
           </div>
 
           {sortedBookings.length === 0 ? (
-            <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-600">
+            <div className="mt-5 rounded-xl border border-dashed border-border bg-white p-6 text-center text-muted-foreground">
               No bookings yet for this equipment.
             </div>
           ) : (
-            <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
+            <div className="mt-5 overflow-hidden rounded-xl border border-border bg-card">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-100">
+                  <thead className="bg-muted/70">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-accent-foreground">
                         User Name
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-accent-foreground">
                         Start Date
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-accent-foreground">
                         End Date
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-accent-foreground">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-accent-foreground">
                         Duration
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-border">
                     {sortedBookings.map((booking) => {
                       const startDate = new Date(booking.startDate);
                       const endDate = new Date(booking.endDate);
@@ -335,19 +335,19 @@ export default function EquipmentDetailPage() {
                       return (
                         <tr
                           key={booking._id}
-                          className="transition hover:bg-slate-50"
+                          className="transition hover:bg-muted/45"
                         >
-                          <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                          <td className="px-4 py-3 text-sm font-medium text-foreground">
                             {booking.userName}
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
                             {startDate.toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
                             })}
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
                             {endDate.toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "short",
@@ -361,7 +361,7 @@ export default function EquipmentDetailPage() {
                               {bookingStatusLabelMap[booking.status]}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
+                          <td className="px-4 py-3 text-sm text-muted-foreground">
                             {durationDays} day{durationDays !== 1 ? "s" : ""}
                           </td>
                         </tr>
@@ -374,19 +374,19 @@ export default function EquipmentDetailPage() {
           )}
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-600">
+            <div className="rounded-2xl border border-border bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Total Bookings
               </p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 {sortedBookings.length}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-600">
+            <div className="rounded-2xl border border-border bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Active Bookings
               </p>
-              <p className="mt-2 text-2xl font-bold text-amber-600">
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-amber-600">
                 {sortedBookings.filter((b) => b.status === "active").length}
               </p>
             </div>

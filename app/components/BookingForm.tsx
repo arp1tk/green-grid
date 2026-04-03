@@ -85,24 +85,24 @@ export default function BookingForm({
   };
 
   const containerClassName = compact
-    ? "mt-4 rounded-xl border border-teal-100 bg-teal-50/60 p-4"
-    : "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6";
+    ? "mt-4 rounded-2xl border border-[color:var(--border)] bg-white p-4"
+    : "rounded-2xl border border-[color:var(--border)] bg-white p-5 shadow-sm sm:p-6";
 
   return (
     <form onSubmit={handleSubmit} className={containerClassName}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className={`font-semibold text-slate-900 ${compact ? "text-base" : "text-xl"}`}>
+          <h3 className={`font-semibold tracking-tight text-foreground ${compact ? "text-base" : "text-xl"}`}>
             Book {equipmentName}
           </h3>
-          <p className={`mt-1 text-slate-600 ${compact ? "text-xs" : "text-sm"}`}>
+          <p className={`mt-1 text-muted-foreground ${compact ? "text-xs" : "text-sm"}`}>
             Reserve this equipment by adding your name and booking dates.
           </p>
         </div>
       </div>
 
       <div className={compact ? "mt-4 grid gap-3" : "mt-5 grid gap-4 sm:grid-cols-2"}>
-        <label className="text-sm text-slate-700">
+        <label className="text-sm text-foreground">
           Your Name
           <input
             required
@@ -110,12 +110,12 @@ export default function BookingForm({
             onChange={(e) =>
               setFormValues((prev) => ({ ...prev, userName: e.target.value }))
             }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-teal-500 focus:ring"
+            className="mt-1 w-full rounded-xl border border-input bg-white px-3 py-2.5 outline-none ring-ring/30 focus:border-ring focus:ring"
             placeholder="Jane Doe"
           />
         </label>
 
-        <label className="text-sm text-slate-700">
+        <label className="text-sm text-foreground">
           Start Date
           <input
             required
@@ -124,11 +124,11 @@ export default function BookingForm({
             onChange={(e) =>
               setFormValues((prev) => ({ ...prev, startDate: e.target.value }))
             }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-teal-500 focus:ring"
+            className="mt-1 w-full rounded-xl border border-input bg-white px-3 py-2.5 outline-none ring-ring/30 focus:border-ring focus:ring"
           />
         </label>
 
-        <label className={`text-sm text-slate-700 ${compact ? "" : "sm:col-span-2"}`}>
+        <label className={`text-sm text-foreground ${compact ? "" : "sm:col-span-2"}`}>
           End Date
           <input
             required
@@ -137,7 +137,7 @@ export default function BookingForm({
             onChange={(e) =>
               setFormValues((prev) => ({ ...prev, endDate: e.target.value }))
             }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-teal-500 focus:ring"
+            className="mt-1 w-full rounded-xl border border-input bg-white px-3 py-2.5 outline-none ring-ring/30 focus:border-ring focus:ring"
           />
         </label>
       </div>
@@ -158,7 +158,7 @@ export default function BookingForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+          className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isSubmitting ? "Booking..." : "Confirm Booking"}
         </button>
