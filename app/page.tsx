@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import BookingModal from "./components/BookingModal";
 
 type Equipment = {
@@ -45,6 +45,7 @@ const statusClassMap: Record<Equipment["status"], string> = {
 export default function Home() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,18 +53,38 @@ export default function Home() {
   const [formValues, setFormValues] = useState<NewEquipmentPayload>(
     defaultFormValues
   );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalAvailable = useMemo(
     () => equipment.filter((item) => item.status === "available").length,
     [equipment]
   );
 
-  const fetchEquipment = async () => {
-    setIsLoading(true);
+  const fetchEquipment = async (search = "", category = "", status = "", signal?: AbortSignal) => {
+    // Only show loading state for initial load (not for search/filter updates)
+    if (!search && !category && !status) {
+      setIsLoading(true);
+    } else {
+      setIsSearching(true);
+    }
     setError(null);
 
     try {
-      const response = await fetch("/api/equipment", { cache: "no-store" });
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (category) params.append("category", category);
+      if (status) params.append("status", status);
+
+      const url = `/api/equipment${params.toString() ? `?${params.toString()}` : ""}`;
+      const response = await fetch(url, { 
+        cache: "no-store",
+        signal: signal,
+      });
 
       if (!response.ok) {
         throw new Error("Unable to load equipment.");
@@ -71,16 +92,51 @@ export default function Home() {
 
       const data = (await response.json()) as Equipment[];
       setEquipment(data);
-    } catch {
-      setError("Unable to fetch equipment right now. Please try again.");
+    } catch (err) {
+      // Don't show error for aborted requests
+      if (err instanceof Error && err.name !== "AbortError") {
+        setError("Unable to fetch equipment right now. Please try again.");
+      }
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
   useEffect(() => {
     fetchEquipment();
   }, []);
+
+  // Debounce search term (300ms)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Fetch when debounced search, category, or status changes
+  useEffect(() => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+
+    // Fetch with debounced search value
+    fetchEquipment(debouncedSearch, filterCategory, filterStatus, abortControllerRef.current.signal);
+  }, [debouncedSearch, filterCategory, filterStatus]);
 
   const handleCreateEquipment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -237,10 +293,79 @@ export default function Home() {
           </form>
         )}
 
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Search & Filter</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="text-sm text-slate-700">
+                Search Equipment
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-teal-500 focus:ring"
+                  />
+                  {isSearching && (
+                    <div className="absolute right-3 top-3 h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-teal-600"></div>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            <label className="text-sm text-slate-700">
+              Category
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none ring-teal-500 focus:ring"
+              >
+                <option value="">All Categories</option>
+                <option value="Tractor">Tractor</option>
+                <option value="Harvester">Harvester</option>
+                <option value="Irrigation">Irrigation</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+
+            <label className="text-sm text-slate-700">
+              Status
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none ring-teal-500 focus:ring"
+              >
+                <option value="">All Statuses</option>
+                <option value="available">Available</option>
+                <option value="in_use">In Use</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </label>
+
+            <div className="flex items-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterCategory("");
+                  setFilterStatus("");
+                }}
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-slate-500">Total Assets</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">{equipment.length}</p>
+            {(searchTerm || filterCategory || filterStatus) && (
+              <p className="mt-1 text-xs text-slate-500">Filtered results</p>
+            )}
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-slate-500">Available</p>
@@ -270,8 +395,27 @@ export default function Home() {
           </div>
         ) : equipment.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600 shadow-sm">
-            No equipment found. Use the <span className="font-semibold">Add Equipment</span>{" "}
-            button to create your first asset.
+            {searchTerm || filterCategory || filterStatus ? (
+              <>
+                <p>No equipment matches your search criteria.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFilterCategory("");
+                    setFilterStatus("");
+                  }}
+                  className="mt-3 text-sm font-medium text-teal-600 hover:text-teal-700"
+                >
+                  Clear filters to see all equipment
+                </button>
+              </>
+            ) : (
+              <>
+                No equipment found. Use the <span className="font-semibold">Add Equipment</span>{" "}
+                button to create your first asset.
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
