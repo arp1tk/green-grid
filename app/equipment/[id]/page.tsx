@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import BookingModal from "../../components/BookingModal";
 
 type Equipment = {
   _id: string;
@@ -11,6 +12,7 @@ type Equipment = {
   description?: string;
   location: string;
   status: "available" | "in_use" | "maintenance";
+  specs?: Record<string, unknown>;
   createdAt?: string;
 };
 
@@ -54,6 +56,27 @@ export default function EquipmentDetailPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+
+  const sortedBookings = useMemo(
+    () =>
+      [...bookings].sort(
+        (left, right) =>
+          new Date(left.startDate).getTime() - new Date(right.startDate).getTime()
+      ),
+    [bookings]
+  );
+
+  const refreshBookings = async () => {
+    const bookingRes = await fetch(`/api/booking?equipmentId=${id}`, {
+      cache: "no-store",
+    });
+
+    if (bookingRes.ok) {
+      const bookingData = (await bookingRes.json()) as Booking[];
+      setBookings(bookingData);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -63,7 +86,6 @@ export default function EquipmentDetailPage() {
       setError(null);
 
       try {
-        // Fetch equipment details
         const equipmentRes = await fetch(`/api/equipment/${id}`, {
           cache: "no-store",
         });
@@ -75,7 +97,6 @@ export default function EquipmentDetailPage() {
         const equipmentData = (await equipmentRes.json()) as Equipment;
         setEquipment(equipmentData);
 
-        // Fetch booking history
         const bookingRes = await fetch(`/api/booking?equipmentId=${id}`, {
           cache: "no-store",
         });
@@ -152,6 +173,24 @@ export default function EquipmentDetailPage() {
             </span>
           </div>
 
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => setIsBookingOpen(true)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-95 ${
+                equipment.status === "in_use"
+                  ? "bg-amber-600 hover:bg-amber-700"
+                  : "bg-teal-600 hover:bg-teal-700"
+              }`}
+            >
+              {equipment.status === "in_use"
+                ? "Currently in use, book future dates"
+                : "Book Now"}
+            </button>
+          </div>
+
+         
+
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-600">Location</p>
@@ -181,6 +220,24 @@ export default function EquipmentDetailPage() {
               <p className="mt-3 text-slate-700">{equipment.description}</p>
             </div>
           )}
+
+          {equipment.specs && Object.keys(equipment.specs).length > 0 && (
+            <div className="mt-6 border-t border-slate-200 pt-6">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+                Specifications
+              </h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {Object.entries(equipment.specs).map(([key, value]) => (
+                  <div key={key} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-600">{key}</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">
+                      {String(value)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
@@ -189,7 +246,58 @@ export default function EquipmentDetailPage() {
             All bookings for this equipment
           </p>
 
-          {bookings.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+              Booking Timeline
+            </h3>
+            <p className="mt-1 text-sm text-slate-600">
+              View booked date ranges before making a new reservation.
+            </p>
+
+            {sortedBookings.length === 0 ? (
+              <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
+                No booked dates yet. You can reserve this equipment now.
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {sortedBookings.map((booking) => {
+                  const startDate = new Date(booking.startDate);
+                  const endDate = new Date(booking.endDate);
+
+                  return (
+                    <div
+                      key={`timeline-${booking._id}`}
+                      className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          Booked by {booking.userName}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {startDate.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })} - {endDate.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-block rounded-full border px-2 py-1 text-xs font-medium ${bookingStatusClassMap[booking.status]}`}
+                      >
+                        {bookingStatusLabelMap[booking.status]}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {sortedBookings.length === 0 ? (
             <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-600">
               No bookings yet for this equipment.
             </div>
@@ -217,7 +325,7 @@ export default function EquipmentDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {bookings.map((booking) => {
+                    {sortedBookings.map((booking) => {
                       const startDate = new Date(booking.startDate);
                       const endDate = new Date(booking.endDate);
                       const durationDays = Math.ceil(
@@ -229,7 +337,7 @@ export default function EquipmentDetailPage() {
                           key={booking._id}
                           className="transition hover:bg-slate-50"
                         >
-                          <td className="px-4 py-3 text-sm text-slate-900 font-medium">
+                          <td className="px-4 py-3 text-sm font-medium text-slate-900">
                             {booking.userName}
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-600">
@@ -271,7 +379,7 @@ export default function EquipmentDetailPage() {
                 Total Bookings
               </p>
               <p className="mt-2 text-2xl font-bold text-slate-900">
-                {bookings.length}
+                {sortedBookings.length}
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -279,11 +387,21 @@ export default function EquipmentDetailPage() {
                 Active Bookings
               </p>
               <p className="mt-2 text-2xl font-bold text-amber-600">
-                {bookings.filter((b) => b.status === "active").length}
+                {sortedBookings.filter((b) => b.status === "active").length}
               </p>
             </div>
           </div>
         </div>
+
+        <BookingModal
+          open={isBookingOpen}
+          equipmentId={equipment._id}
+          equipmentName={equipment.name}
+          onClose={() => setIsBookingOpen(false)}
+          onBooked={() => {
+            refreshBookings();
+          }}
+        />
       </section>
     </main>
   );
