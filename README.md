@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Video Walkthrough
+(https://drive.google.com/file/d/1avBWLlyQUvt9TYI3edX6yFcPctGzs48M/view?usp=sharing)
 
-## Getting Started
+## Problem Definition
+In the Green-Grid scenario, teams need a reliable way to manage shared farm equipment, prevent double-bookings, and understand asset availability at a glance.
 
-First, run the development server:
+This project solves that by providing:
+- Centralized equipment inventory with status tracking (available, in use, maintenance)
+- Booking with overlap prevention so conflicting reservations are blocked
+- Search and filters for fast discovery
+- Equipment detail pages with booking history/timeline for advance planning
 
+## Setup & Deployment
+### 1. Prerequisites
+- Node.js 18+
+- npm
+- MongoDB instance (local or cloud)
+
+### 2. Clone and install
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd green
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Environment variables
+Create a `.env.local` file in the project root:
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>?retryWrites=true&w=majority
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Run locally
+```bash
+npm run dev
+```
+Open http://localhost:3000.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Database migrations / schema setup
+This project uses Mongoose schema-driven models.
+- No separate migration tool is currently configured.
+- Collections and indexes are created from model definitions when the app runs and data is written.
 
-## Learn More
+### 6. Production deployment
+```bash
+npm run build
+npm run start
+```
+You can also deploy to Vercel; make sure `MONGODB_URI` is set in deployment environment variables.
 
-To learn more about Next.js, take a look at the following resources:
+## Technical Architecture
+### High-level design
+- Frontend: Next.js App Router pages and client components for dashboard, filtering, and booking UX
+- API layer: Route handlers in `app/api` for equipment and booking operations
+- Data layer: MongoDB + Mongoose models (`Equipment`, `Booking`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Data modeling
+- `Equipment`: name, category, description, location, status, optional specs map, timestamps
+- `Booking`: equipment reference, userName, startDate, endDate, status, timestamps
+- Indexes support query speed for search/filter and booking date range checks
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Business logic vs presentation
+- Presentation layer: UI components render forms, cards, and timelines
+- Business logic layer: API routes enforce booking rules (validation, overlap detection, status updates)
 
-## Deploy on Vercel
+This separation keeps the UI simple and ensures rules are enforced server-side regardless of client behavior.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Critical Reflection
+One significant decision that remains a point of uncertainty is launching the booking flow without user authentication.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Trade-offs:
+- Pro: Faster delivery and simpler onboarding for demo and early validation
+- Con: No user identity guarantees, weaker booking accountability, and no role-based access control
+
+Given more time/resources, I would add authentication and authorization (for example, admin and operator roles), attach bookings to authenticated users, and enforce access rules in API routes so only permitted users can create or manage bookings.
