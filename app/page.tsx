@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Equipment = {
@@ -273,10 +274,9 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {equipment.map((item) => (
-              <article
-                key={item._id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
+              <Link key={item._id} href={`/equipment/${item._id}`}>
+                <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
+                
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">{item.name}</h3>
@@ -305,6 +305,7 @@ export default function Home() {
                   </p>
                 </div>
               </article>
+            </Link>
             ))}
           </div>
         )}
