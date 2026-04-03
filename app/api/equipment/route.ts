@@ -12,11 +12,14 @@ export async function GET(req: Request) {
 
   let query: any = {};
 
- 
+  // Partial/substring matching on name and description
   if (search) {
-    query.$text = { $search: search };
+    const searchRegex = { $regex: search, $options: "i" }; 
+    query.$or = [
+      { name: searchRegex },
+      { description: searchRegex },
+    ];
   }
-
 
   if (category) {
     query.category = category;
