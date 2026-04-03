@@ -37,12 +37,12 @@ export default function BookingModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 backdrop-blur-sm px-4 py-6"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl"
+        className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-[0_20px_40px_rgb(15_23_42/0.18)]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -50,17 +50,17 @@ export default function BookingModal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-teal-700">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
               Equipment Booking
             </p>
-            <h2 id="booking-modal-title" className="mt-1 text-2xl font-semibold text-slate-900">
+            <h2 id="booking-modal-title" className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
               Book {equipmentName}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             Close
           </button>
